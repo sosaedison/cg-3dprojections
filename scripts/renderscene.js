@@ -246,30 +246,19 @@ function OnKeyDown(event) {
     var i;
     switch (event.keyCode) {
         case 37: // LEFT Arrow
-            for(i =0; i < tempVertices.length; i++) {
-                var newX = tempVertices[i].data[0][0] + 0.001;
-                tempVertices[i].data[0][0] = newX;
-            }
 
             console.log("left");
             break;
         case 38: // UP Arrow
-            for(i =0; i < tempVertices.length; i++) {
-                var newZ = tempVertices[i].data[2][0];
-                
-            }
+            
             console.log("up");
             break;
         case 39: // RIGHT Arrow
-            for(i =0; i < tempVertices.length; i++) {
-                var curX = tempVertices[i].data[0][0];
-            }
+            
             console.log("right");
             break;
         case 40: // DOWN Arrow
-            for(i =0; i < tempVertices.length; i++) {
-                var curX = tempVertices[i].data[2][0];
-            }
+           
             console.log("down");
             break;
     }
