@@ -27,7 +27,7 @@ function Init() {
             vpn: Vector3(1, 0, 1),
             vup: Vector3(0, 1, 0),
             prp: Vector3(14, 20, 26),
-            clip: [-1, 20, 5, 36, 1, -50]
+            clip: [-20, 20, -4, 36, 1, -50]
         },
         models: [
             {

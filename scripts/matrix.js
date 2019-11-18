@@ -233,118 +233,43 @@ class Vector extends Matrix {
 
 function mat4x4identity() {
     var result = new Matrix(4, 4);
-    result.data[0][0] = 1;
-    result.data[1][1] = 1;
-    result.data[2][2] = 1;
-    result.data[3][3] = 1;
+    
     return result;
 }
 
 function mat4x4translate(tx, ty, tz) {
     var result = new Matrix(4, 4);
-    result.data[0][0] = 1;
-    result.data[0][3] = tx;
-    result.data[1][1] = 1;
-    result.data[1][3] = ty;
-    result.data[2][2] = 1;
-    result.data[2][3] = tz;
-    result.data[3][3] = 1;
+    
     return result;
 }
 
 function mat4x4scale(sx, sy, sz) {
     var result = new Matrix(4, 4);
-    result.data[0][0] = 1;
-    result.data[0][3] = sx;
-    result.data[1][1] = 1;
-    result.data[1][3] = sy;
-    result.data[2][2] = 1;
-    result.data[2][3] = sz;
-    result.data[3][3] = 1;
+    
     return result;
 }
 
 function mat4x4rotatex(theta) {
     var result = new Matrix(4, 4);
-    result.data[0][0] = 1;
-    result.data[1][1] = Math.cos(theta);
-    result.data[1][2] = (-1) * (Math.sin(theta));
-    result.data[2][1] = Math.sin(theta);
-    result.data[2][2] = Math.cos(theta);
-    result.data[3][3] = 1;
+    
     return result;
 }
 
 function mat4x4rotatey(theta) {
     var result = new Matrix(4, 4);
-    result.data[0][0] = Math.cos(theta);
-    result.data[0][2] = Math.sin(theta);
-    result.data[1][1] = 1;
-    result.data[2][0] = (-1) * (Math.sin(theta));
-    result.data[2][2] = Math.cos(theta);
-    result.data[3][3] = 1;
+    
     return result;
 }
 
 function mat4x4rotatez(theta) {
     var result = new Matrix(4, 4);
-    result.data[0][0] = Math.cos(theta);
-    result.data[0][1] = (-1) * (Math.sin(theta));
-    result.data[1][0] = Math.sin(theta);
-    result.data[1][1] = Math.cos(theta);
-    result.data[2][2] = 1;
-    result.data[3][3] = 1;
+    
     return result;
 }
 
 function mat4x4shearxy(shx, shy) {
     var result = new Matrix(4, 4);
-    result.data[0][0] = 1;
-    result.data[0][2] = shx;
-    result.data[1][1] = 1;
-    result.data[1][2] = shy;
-    result.data[2][2] = 1;
-    result.data[3][3] = 1;
     
-    return result;
-}
-
-function mat4x4rotatevrp(u1,u2,u3,v1,v2,v3,n1,n2,n3) {
-    var result = new Matrix(4,4);
-    result.data[0][0] = u1;
-    result.data[0][1] = u2;
-    result.data[0][2] = u3;
-    result.data[1][0] = v1;
-    result.data[1][1] = v2;
-    result.data[1][2] = v3;
-    result.data[2][0] = n1;
-    result.data[2][1] = n2;
-    result.data[2][2] = n3;
-    result.data[3][3] = 1;
-    return result;
-}
-
-function mat4x4scaleperspective(sperx, spery, sperz) {
-    var result = new Matrix(4,4);
-    result.data[0][0] = sperx;
-    result.data[1][1] = spery;
-    result.data[2][2] = sperz;
-    result.data[3][3] = 1;
-    return result;
-}
-
-function mat4x4scareparallel(sparx, spary, sparz) {
-    var result = mat4x4identity();
-    result.data[0][0] = sparx;
-    result.data[1][1] = spary;
-    result.data[2][2] = sparz;
-    return result;
-}
-function mat4x4cwfront(cwx, cwy, front) {
-    var result = mat4x4identity();
-    result.data[0][3] = cwx;
-    result.data[1][3] = cwy;
-    result.data[2][3] = front;
     return result;
 }
 
@@ -355,32 +280,7 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     // 3. shear such that the DOP becomes parallel to the z-axis
     // 4. translate and scale into canonical view volume
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
-
-    // 1.
-    var Tvrp = mat4x4translate(-vrp.x, -vrp.y, -vrp.z);
-    // 2.
-    var n_axis = Vector3(vpn.x, vpn.y, vpn.z);
-    n_axis.normalize();
-    var u_axis = vup.cross(n_axis);
-    u_axis.normalize()
-    let v_axis = n_axis.cross(u_axis);
-    u_axis.x
-    var rotateVRC = new Matrix(4,4);
-    rotateVRC.values = [[u_axis.x, u_axis.y, u_axis.z,0],[v_axis.x, v_axis.y, v_axis.z, 0],[n_axis.x, n_axis.y, n_axis.z, 0],[0,0,0,1]]
-    // 3.
-    var Tprp = mat4x4translate(-prp.x, -prp.y, -prp.z);
-    // 4.
-    var DOP_x = ((clip[0] + clip[1])/2); // center of window on the X
-    var DOP_y = ((clip[2] + clip[3])/2); // center of window on the Y
-    const Z = 0; // the Z is usually 0
-    var CW = Vector3(DOP_x, DOP_y, Z); // center of window Vector
-    var DOP = CW.subtract(prp); // From class slides DOP = CW - PRP
-    var shxpar = (-DOP.x) / DOP.z;
-    var shypar = (-DOP.y) / DOP.z;
-    var SHEARxy = mat4x4shearxy(shxpar, shypar);
-
-
-
+    
 }
 
 function mat4x4perspective(vrp, vpn, vup, prp, clip) {
@@ -392,64 +292,67 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     // 5. scale into canonical view volume (truncated pyramid)
     //    (x = [z,-z], y = [z,-z], z = [-z_min,-1])
     
-    // 1.
-    var Tvrp = new Matrix(4,4);
-    Tvrp.values = [
+    //1 
+    var T_vrp = new Matrix(4,4);
+    T_vrp.values = [
         [1, 0, 0, -vrp.x],
         [0, 1, 0, -vrp.y],
         [0, 0, 1, -vrp.z],
         [0, 0, 0, 1]
     ];
-    // 2.
-    var n_axis = new Vector3(vpn.x, vpn.y, vpn.z);
-    n_axis.normalize();
-    var u_axis = vup.cross(n_axis);
-    u_axis.normalize()
-    let v_axis = n_axis.cross(u_axis);
-    var rotateVRC = new Matrix(4,4);
-    rotateVRC.values = [
-        [u_axis.x, u_axis.y, u_axis.z, 0],
-        [v_axis.x, v_axis.y, v_axis.z, 0],
-        [n_axis.x, n_axis.y, n_axis.z, 0],
+
+    //2
+    var nAxis = new Vector3(vpn.x, vpn.y, vpn.z);
+    nAxis.normalize();
+    var uAxis = vup.cross(nAxis);
+    var vAxis = nAxis.cross(uAxis);
+    var R_vrc = new Matrix(4,4);
+    R_vrc.values = [
+        [uAxis.x, uAxis.y, uAxis.z, 0],
+        [vAxis.x, vAxis.y, vAxis.z, 0],
+        [nAxis.x, nAxis.y, nAxis.z, 0],
         [0, 0, 0, 1]
     ];
-    // 3.
-    var Tprp = new Matrix(4,4);
-    Tprp.values = [
+    
+    //3 
+    var T_prp = new Matrix(4,4);
+    T_prp.values = [
         [1, 0, 0, -prp.x],
         [0, 1, 0, -prp.y],
         [0, 0, 1, -prp.z],
         [0, 0, 0, 1]
     ];
-    // 4.
-    var DOP_x = (clip[0] + clip[1])/2; // center of window on the X
-    var DOP_y = (clip[2] + clip[3])/2; // center of window on the Y
-    const Z = 0; // the Z is usually 0
-    var CW = new Vector3(DOP_x, DOP_y, Z); // center of window Vector
-    var DOP = CW.subtract(prp); // From class slides DOP = CW - PRP
-    var shxpar = (-DOP.x) / DOP.z;
-    var shypar = (-DOP.y) / DOP.z;
-    var SHEARxy = new Matrix(4,4);
-    SHEARxy.values = [
-        [1, 0, shxpar, 0],
-        [0, 1, shypar, 0],
+
+    //4
+    var DOPx = (clip[0] + clip[1])/2;
+    var DOPy = (clip[2] + clip[3])/2;
+    var DOPz = 0;
+    var CW = new Vector3(DOPx, DOPy, DOPz);
+    var DOP = CW.subtract(prp);
+    var shx = -DOP.x / DOP.z;
+    var shy = -DOP.x / DOP.z;
+    var Shearxy = new Matrix(4,4);
+    Shearxy.values = [
+        [1, 0, shx, 0],
+        [0, 1, shy, 0],
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ];
-    // 5.
+
+    //5
     var VRP_prime = -prp.z;
-    var scale_pers_x = ((2 * VRP_prime) / ((clip[1] - clip[0]) * (VRP_prime + clip[5])));
-    var scale_pers_y = ((2 * VRP_prime) / ((clip[3] - clip[2]) * (VRP_prime + clip[5])));
-    var scale_pers_z = (-1 / (VRP_prime + clip[5]));
-    var Spers = new Matrix(4,4);
-    Spers.values = [
-        [scale_pers_x, 0, 0, 0],
-        [0, scale_pers_y, 0, 0],
-        [0, 0, 0, scale_pers_z],
+    var scalex = (2 * VRP_prime) / ((clip[1] - clip[0] * (VRP_prime + clip[5])));
+    var scaley = (2 * VRP_prime) / ((clip[3] - clip[2] * (VRP_prime + clip[5])));
+    var scalez = -1 / (VRP_prime + clip[5]);
+    var Scale = new Matrix(4,4);
+    Scale.values = [
+        [scalex, 0, 0, 0],
+        [0, scaley, 0, 0],
+        [0, 0, 0, scalez],
         [0, 0, 0, 1]
     ];
-    //var Nper = Matrix.multiply(Spers, SHEARxy, Tprp, rotateVRC, Tvrp);
-    return Matrix.multiply(Spers, SHEARxy, Tprp, rotateVRC, Tvrp);
+
+    return Matrix.multiply(Scale, Shearxy, T_prp, R_vrc, T_vrp);
 }
 
 function mat4x4mper() {
