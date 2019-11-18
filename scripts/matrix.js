@@ -302,9 +302,10 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     ];
 
     //2
-    var nAxis = new Vector3(vpn.x, vpn.y, vpn.z);
+    var nAxis = Vector3(vpn.x, vpn.y, vpn.z);
     nAxis.normalize();
     var uAxis = vup.cross(nAxis);
+    uAxis.normalize();
     var vAxis = nAxis.cross(uAxis);
     var R_vrc = new Matrix(4,4);
     R_vrc.values = [
@@ -330,7 +331,7 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
     var CW = new Vector3(DOPx, DOPy, DOPz);
     var DOP = CW.subtract(prp);
     var shx = -DOP.x / DOP.z;
-    var shy = -DOP.x / DOP.z;
+    var shy = -DOP.y / DOP.z;
     var Shearxy = new Matrix(4,4);
     Shearxy.values = [
         [1, 0, shx, 0],
@@ -341,14 +342,14 @@ function mat4x4perspective(vrp, vpn, vup, prp, clip) {
 
     //5
     var VRP_prime = -prp.z;
-    var scalex = (2 * VRP_prime) / ((clip[1] - clip[0] * (VRP_prime + clip[5])));
-    var scaley = (2 * VRP_prime) / ((clip[3] - clip[2] * (VRP_prime + clip[5])));
+    var scalex = (2 * VRP_prime) / ((clip[1] - clip[0]) * (VRP_prime + clip[5]));
+    var scaley = (2 * VRP_prime) / ((clip[3] - clip[2]) * (VRP_prime + clip[5]));
     var scalez = -1 / (VRP_prime + clip[5]);
     var Scale = new Matrix(4,4);
     Scale.values = [
         [scalex, 0, 0, 0],
         [0, scaley, 0, 0],
-        [0, 0, 0, scalez],
+        [0, 0, scalez, 0],
         [0, 0, 0, 1]
     ];
 

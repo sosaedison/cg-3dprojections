@@ -65,11 +65,11 @@ function Init() {
 
 // Main drawing code here! Use information contained in variable `scene`
 function DrawScene() {
-
+    ctx.clearRect(0, 0, view.width, view.height);
     // Drawing the scene in our two different perspectives
     var perspective = mat4x4perspective(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip);
     var parallel = mat4x4parallel(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip); 
-    console.log(perspective); 
+    console.log(JSON.stringify(perspective, null, 4)); 
     var i, j, k;
     var Mper = new Matrix(4,4);
     Mper.values =[
@@ -99,10 +99,10 @@ function DrawScene() {
         }
 
         // 2.
-
+        
         // 3. and 4. 
         for(j = 0; j < tempVertices.length; j++) {
-            tempVertices[j] = Matrix.multiply( /*transcale,*/ Mper, tempVertices[j]);
+            tempVertices[j] = Matrix.multiply( transcale, Mper, tempVertices[j]);
         }
         // 5. 
         for (j = 0; j < scene.models[i].edges.length; j++) {
@@ -116,9 +116,6 @@ function DrawScene() {
     }
 } // DrawScene
 
-function DrawThings() {
-    
-}
 function GetOutCode(pt, view) {
     var outcode = 0;
     if(pt.x < view.x_min) {
@@ -246,19 +243,31 @@ function OnKeyDown(event) {
     var i;
     switch (event.keyCode) {
         case 37: // LEFT Arrow
-
+            var curvrpx = scene.view.vrp.x;
+            console.log(curvrpx++);
+            scene.view.vrp.x = curvrpx++;
+            DrawScene();
             console.log("left");
             break;
         case 38: // UP Arrow
-            
+            var curvrpz = scene.view.vrp.z;
+            console.log(curvrpz++);
+            scene.view.vrp.z = curvrpz;
+            DrawScene();
             console.log("up");
             break;
         case 39: // RIGHT Arrow
-            
+            var curvrpx = scene.view.vrp.x;
+            console.log(curvrpx--);
+            scene.view.vrp.x = curvrpx--;
+            DrawScene();
             console.log("right");
             break;
         case 40: // DOWN Arrow
-           
+            var curvrpz = scene.view.vrp.z;
+            console.log(curvrpz--);
+            scene.view.vrp.z = curvrpz--;
+            DrawScene();
             console.log("down");
             break;
     }
@@ -266,6 +275,7 @@ function OnKeyDown(event) {
 
 // Draw black 2D line with red endpoints 
 function DrawLine(x1, y1, x2, y2) {
+    
     ctx.strokeStyle = '#000000';
     ctx.beginPath();
     ctx.moveTo(x1, y1);
