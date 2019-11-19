@@ -281,6 +281,70 @@ function mat4x4parallel(vrp, vpn, vup, prp, clip) {
     // 4. translate and scale into canonical view volume
     //    (x = [-1,1], y = [-1,1], z = [0,-1])
     
+
+    //1 
+    var T_vrp = new Matrix(4,4);
+    T_vrp.values = [
+        [1, 0, 0, -vrp.x],
+        [0, 1, 0, -vrp.y],
+        [0, 0, 1, -vrp.z],
+        [0, 0, 0, 1]
+    ];
+
+    //2
+    var nAxis = Vector3(vpn.x, vpn.y, vpn.z);
+    nAxis.normalize();
+    var uAxis = vup.cross(nAxis);
+    uAxis.normalize();
+    var vAxis = nAxis.cross(uAxis);
+    var R_vrc = new Matrix(4,4);
+    R_vrc.values = [
+        [uAxis.x, uAxis.y, uAxis.z, 0],
+        [vAxis.x, vAxis.y, vAxis.z, 0],
+        [nAxis.x, nAxis.y, nAxis.z, 0],
+        [0, 0, 0, 1]
+    ];
+
+    //3
+    var DOPx = (clip[0] + clip[1])/2;
+    var DOPy = (clip[2] + clip[3])/2;
+    var DOPz = 0;
+    var CW = new Vector3(DOPx, DOPy, DOPz);
+    var DOP = CW.subtract(prp);
+    var shx = -DOP.x / DOP.z;
+    var shy = -DOP.y / DOP.z;
+    var Shearxy = new Matrix(4,4);
+    Shearxy.values = [
+        [1, 0, shx, 0],
+        [0, 1, shy, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ];
+
+    //4
+    var CWx = (clip[1] + clip[0]) / 2;
+    var CWy = (clip[2] + clip[3]) / 2;
+    var F = clip[4];
+    var T_par = new Matrix(4,4);
+    T_par.values =  [
+        [1, 0, 0, -CWx],
+        [0, 1, 0, -CWy],
+        [0, 0, 1, -F],
+        [0, 0, 0, 1]
+    ];
+    var sparx = 2 / (clip[1] - clip[0]);
+    var spary = 2 / (clip[3] - clip[2]);
+    var sparz = 1 / (clip[4] - clip[5]);
+    var Spar = new Matrix(4,4);
+    Spar.values = [
+        [sparx, 0, 0, 0],
+        [0, spary, 0, 0],
+        [0, 0, sparz, 0],
+        [0, 0, 0, 1]
+    ];
+
+    return Matrix.multiply(Spar, T_par, Shearxy, R_vrc, T_vrp);
+
 }
 
 function mat4x4perspective(vrp, vpn, vup, prp, clip) {
