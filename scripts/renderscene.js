@@ -70,6 +70,15 @@ function DrawScene() {
     var perspective = mat4x4perspective(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip);
     var parallel = mat4x4parallel(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip); 
     var i, j, k;
+    var z_min = -((-scene.view.prp.z + scene.view.clip[4]) / (-scene.view.prp.z + scene.view.clip[5]))
+    var pers_bounds = {
+        leftx: -1,
+        rightx: 1,
+        topy: -1,
+        boty: 1,
+        near: z_min,
+        far: -1
+    }
     var Mper = new Matrix(4,4);
     Mper.values =[
         [1, 0, 0, 0],
@@ -84,7 +93,7 @@ function DrawScene() {
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ]
-    if(scene.view.type === 'parallel') {
+    if(scene.view.type === 'perspective') {
         for(i = 0; i< scene.models.length; i++) { // PARALLEL PROJECTION
             // 1. transform vertices in canonicalVV 
             // 2. Clip against CVV
@@ -129,7 +138,15 @@ function DrawScene() {
             }
 
             // 2.
-            
+            for(j = 0; j < scene.models[i].edges.length; j++) {
+                var curEdge = scene.models[i].edges[j];
+                for(k = 0; k < curEdge.length-1; k++){
+                    var curpt1 = tempVertices[curEdge[k]];
+                    var curpt2 = tempVertices[curEdge[k+1]];
+                    var result = ClipLine(curpt1, curpt2, pers_bounds);
+                    
+                }
+            }
             // 3. and 4. 
             for(j = 0; j < tempVertices.length; j++) {
                 tempVertices[j] = Matrix.multiply( transcale, Mper, tempVertices[j]);
