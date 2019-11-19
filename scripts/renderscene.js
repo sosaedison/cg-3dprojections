@@ -22,6 +22,14 @@ function Init() {
     
     scene = {
         view: {
+
+            // type: "parallel",
+            // vrp: Vector3(0, 0, 0),
+            // vpn: Vector3(0, 0, 1),
+            // vup: Vector3(0, 1, 0),
+            // prp: Vector3(0, 0, 100),
+            // clip: [-1, 17, -0.5, 13, 1, -50]
+
             type: 'parallel',
             vrp: Vector3(20, 0, -30),
             vpn: Vector3(1, 0, 1),
@@ -69,6 +77,7 @@ function DrawScene() {
     // Drawing the scene in our two different perspectives
     var perspective = mat4x4perspective(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip);
     var parallel = mat4x4parallel(scene.view.vrp, scene.view.vpn, scene.view.vup, scene.view.prp, scene.view.clip); 
+    //console.log(parallel);
     var i, j, k;
     var z_min = -((-scene.view.prp.z + scene.view.clip[4]) / (-scene.view.prp.z + scene.view.clip[5]))
     var pers_bounds = {
@@ -136,15 +145,29 @@ function DrawScene() {
             for(j = 0; j < scene.models[i].vertices.length; j++) {
                 tempVertices.push(Matrix.multiply( perspective, scene.models[i].vertices[j]));
             }
-
             // 2.
             for(j = 0; j < scene.models[i].edges.length; j++) {
+                // Loop through edges and take the two points and clip per draw call
+
                 var curEdge = scene.models[i].edges[j];
                 for(k = 0; k < curEdge.length-1; k++){
-                    var curpt1 = tempVertices[curEdge[k]];
-                    var curpt2 = tempVertices[curEdge[k+1]];
+                    var curpt1 = {
+                        x: tempVertices[curEdge[k]].data[0][0],
+                        y: tempVertices[curEdge[k]].data[1][0],
+                        z: tempVertices[curEdge[k]].data[2][0]
+                    }
+                    var curpt2 = {
+                        x: tempVertices[curEdge[k+1]].data[0][0],
+                        y: tempVertices[curEdge[k+1]].data[1][0],
+                        z: tempVertices[curEdge[k+1]].data[2][0]
+                    }
                     var result = ClipLine(curpt1, curpt2, pers_bounds);
-                    
+                    tempVertices[curEdge[k]].x = result.pt0.x;
+                    tempVertices[curEdge[k]].y = result.pt0.y;
+                    tempVertices[curEdge[k]].z = result.pt0.z;
+                    tempVertices[curEdge[k+1]].x = result.pt1.x;
+                    tempVertices[curEdge[k+1]].y = result.pt1.y;
+                    tempVertices[curEdge[k+1]].z = result.pt1.z;
                 }
             }
             // 3. and 4. 
@@ -290,32 +313,36 @@ function LoadNewScene() {
 function OnKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
-            var curvrpx = scene.view.vrp.x;
-            console.log(curvrpx++);
-            scene.view.vrp.x = curvrpx++;
+            var nAxis = Vector3(scene.view.vpn.x, scene.view.vpn.y, scene.view.vpn.z);
+            nAxis.normalize();
+            var uAxis = scene.view.vup.cross(nAxis);
+            uAxis.normalize();
+            scene.view.vrp =  scene.view.vrp.subtract(uAxis);
             DrawScene();
-            console.log("left");
             break;
         case 38: // UP Arrow
-            var curvrpz = scene.view.vrp.z;
-            console.log(curvrpz++);
-            scene.view.vrp.z = curvrpz;
+            var nAxis = Vector3(scene.view.vpn.x, scene.view.vpn.y, scene.view.vpn.z);
+            nAxis.normalize();
+            var uAxis = scene.view.vup.cross(nAxis);
+            uAxis.normalize();
+            scene.view.vrp = scene.view.vrp.subtract(nAxis);
             DrawScene();
-            console.log("up");
             break;
         case 39: // RIGHT Arrow
-            var curvrpx = scene.view.vrp.x;
-            console.log(curvrpx--);
-            scene.view.vrp.x = curvrpx--;
+            var nAxis = Vector3(scene.view.vpn.x, scene.view.vpn.y, scene.view.vpn.z);
+            nAxis.normalize();
+            var uAxis = scene.view.vup.cross(nAxis);
+            uAxis.normalize();
+            scene.view.vrp =  scene.view.vrp.add(uAxis);
             DrawScene();
-            console.log("right");
             break;
         case 40: // DOWN Arrow
-            var curvrpz = scene.view.vrp.z;
-            console.log(curvrpz--);
-            scene.view.vrp.z = curvrpz--;
+            var nAxis = Vector3(scene.view.vpn.x, scene.view.vpn.y, scene.view.vpn.z);
+            nAxis.normalize();
+            var uAxis = scene.view.vup.cross(nAxis);
+            uAxis.normalize();
+            scene.view.vrp = scene.view.vrp.add(nAxis);
             DrawScene();
-            console.log("down");
             break;
     }
 }
