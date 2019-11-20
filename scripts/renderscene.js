@@ -81,12 +81,12 @@ function DrawScene() {
     var i, j, k;
     var z_min = -((-scene.view.prp.z + scene.view.clip[4]) / (-scene.view.prp.z + scene.view.clip[5]))
     var pers_bounds = {
-        leftx: -1,
-        rightx: 1,
-        topy: -1,
-        boty: 1,
-        near: z_min,
-        far: -1
+        x_min: -1,
+        x_max: 1,
+        y_min: -1,
+        y_max: 1,
+        z_min: z_min,
+        z_max: -1
     }
     var Mper = new Matrix(4,4);
     Mper.values =[
@@ -147,32 +147,37 @@ function DrawScene() {
             }
             // 2.
             for(j = 0; j < scene.models[i].edges.length; j++) {
-                // Loop through edges and take the two points and clip per draw call
 
                 var curEdge = scene.models[i].edges[j];
                 for(k = 0; k < curEdge.length-1; k++){
+                    var start = curEdge[k];
+                    var end = curEdge[k+1];
+                    var temp1 = tempVertices[start];
+                    var temp2 = tempVertices[end];
+                    //console.log(temp1.data[0][0])
                     var curpt1 = {
-                        x: tempVertices[curEdge[k]].data[0][0],
-                        y: tempVertices[curEdge[k]].data[1][0],
-                        z: tempVertices[curEdge[k]].data[2][0]
+                        x:  temp1.data[0][0],
+                        y:  temp1.data[1][0],
+                        z:  temp1.data[2][0]
                     }
                     var curpt2 = {
-                        x: tempVertices[curEdge[k+1]].data[0][0],
-                        y: tempVertices[curEdge[k+1]].data[1][0],
-                        z: tempVertices[curEdge[k+1]].data[2][0]
+                        x:  temp2.data[0][0],
+                        y:  temp2.data[1][0],
+                        z:  temp2.data[2][0]
                     }
                     var result = ClipLine(curpt1, curpt2, pers_bounds);
-                    tempVertices[curEdge[k]].x = result.pt0.x;
-                    tempVertices[curEdge[k]].y = result.pt0.y;
-                    tempVertices[curEdge[k]].z = result.pt0.z;
-                    tempVertices[curEdge[k+1]].x = result.pt1.x;
-                    tempVertices[curEdge[k+1]].y = result.pt1.y;
-                    tempVertices[curEdge[k+1]].z = result.pt1.z;
+                    
+                    tempVertices[start].data[0][0] = result.pt0.x;
+                    tempVertices[start].data[1][0] = result.pt0.y;
+                    // tempVertices[curEdge[k]].z = result.pt0.z;
+                    tempVertices[end].data[0][0] = result.pt1.x;
+                    tempVertices[end].data[1][0] = result.pt1.y;
+                    // tempVertices[curEdge[k+1]].z = result.pt1.z;
                 }
             }
             // 3. and 4. 
             for(j = 0; j < tempVertices.length; j++) {
-                tempVertices[j] = Matrix.multiply( transcale, Mper, tempVertices[j]);
+                tempVertices[j] = Matrix.multiply( transcale, Mper, tempVertices[j] );
             }
             // 5. 
             for (j = 0; j < scene.models[i].edges.length; j++) {
@@ -199,15 +204,12 @@ function GetOutCode(pt, view) {
     } else if(pt.y > view.y_max){
         outcode += TOP;
     }
-    if(pt.z < view.z_min) {
-        outcode += BACK;
-    } else if(pt.z > view.z_max) {
-        outcode += FRONT;
-    }
+    
     return outcode;
 } // GetOutCode
 
 function ClipLine(pt0, pt1, view) {
+    
     var result = {
         pt0: {},
         pt1: {}
@@ -225,10 +227,10 @@ function ClipLine(pt0, pt1, view) {
             done = true;
             result.pt0.x = pt0.x;
             result.pt0.y = pt0.y;
-            result.pt0.z = pt0.z;
+            //result.pt0.z = pt0.z;
             result.pt1.x = pt1.x;
             result.pt1.y = pt1.y;
-            result.pt1.z = pt1.z;
+            //result.pt1.z = pt1.z;
         } else if ((outcode0 & outcode1) !== 0) { //Trivial reject 
             done = true;
             result = null;
@@ -250,19 +252,11 @@ function ClipLine(pt0, pt1, view) {
                 selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
             } else if((selected_outcode & BOT) === BOT) {
                 selected_pt.y = view.y_min;
-                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
+                selected_pt.x = (selected_pt.y - b) * (delta_x / delta_y);
             } else if((selected_outcode & TOP) === TOP){ // we know it's the top
                 selected_pt.y = view.y_max;
                 selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
-            } else if((selected_outcode & FRONT) === FRONT) {
-                selected_pt.z = view.z_max;
-                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
-                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
-            } else { // we know it's gonna be BACK
-                selected_pt.z = view.z_min;
-                selected_pt.x = (selected_pt.y -b) * (delta_x / delta_y);
-                selected_pt.y = (delta_y / delta_x) * selected_outcode.x + b;
-            }
+            } 
             if(outcode0 > 0) {
                 outcode0 = selected_outcode;
             } else {
