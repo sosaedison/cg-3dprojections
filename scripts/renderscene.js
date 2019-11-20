@@ -30,7 +30,7 @@ function Init() {
             // prp: Vector3(0, 0, 100),
             // clip: [-1, 17, -0.5, 13, 1, -50]
 
-            type: 'parallel',
+            type: 'perspective',
             vrp: Vector3(20, 0, -30),
             vpn: Vector3(1, 0, 1),
             vup: Vector3(0, 1, 0),
@@ -102,91 +102,69 @@ function DrawScene() {
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ]
-    if(scene.view.type === 'perspective') {
-        for(i = 0; i< scene.models.length; i++) { // PARALLEL PROJECTION
-            // 1. transform vertices in canonicalVV 
-            // 2. Clip against CVV
-            // 3. Project onto 2D (Mper matrix)
-            // 4. transcale to framebuffer size 
-            // 5. Draw all edges
-            // step 1
-            var tempVertices;
-            tempVertices = [];
-            for(j = 0; j < scene.models[i].vertices.length; j++) {
-                tempVertices.push(Matrix.multiply( parallel, scene.models[i].vertices[j]));
-            }
+    for(i = 0; i< scene.models.length; i++) { // parallel PROJECTION
 
-            // 2.
+        // if(scene.models[i].type === 'cube') {
+        //     var cube = scene.models[i];
+        //     var cubeVertices = [];
+        //     var cubeEdges = [
+        //         [0,1,2,3],
+        //         [0,4],
+        //         [1,5],
+        //         [2,6],
+        //         [3,7],
+        //         [4,5,6,7]
+        //     ];
+        //     cubeVertices.push(Vector4(-4, 12, -2, 1))
+        //     cubeVertices.push(Vector4(-4, -4, -2, 1))
+        //     cubeVertices.push(Vector4(12, -4, -2, 1))
+        //     cubeVertices.push(Vector4(12, 12, -2, 1))
+        //     cubeVertices.push(Vector4(-4, 12, -18, 1))
+        //     cubeVertices.push(Vector4(-4, -4, -18, 1))
+        //     cubeVertices.push(Vector4(12, -4, -18, 1))
+        //     cubeVertices.push(Vector4(12, 12, -18, 1))
+        //     var tempCubevertices = [];
+        //     for(j = 0; j < scene.models[i].vertices.length; j++) {
+        //         tempCubevertices.push(Matrix.multiply( parallel, cubeVertices[j]));
+        //     }
+
+        //     for(j = 0; j < tempVertices.length; j++) {
+        //         tempCubevertices[j] = Matrix.multiply( transcale, Mper, tempCubevertices[j]);
+        //     }
+
+        //     for (j = 0; j < scene.models[i].edges.length; j++) {
+        //         var curEdge = scene.models[i].edges[j];
+        //         for (k = 0; k < curEdge.length-1; k++) {
+        //             var curpt1 = tempCubevertices[curEdge[k]];
+        //             var curpt2 = tempCubevertices[curEdge[k+1]];
+        //             DrawLine(curpt1.x/curpt1.w, curpt1.y/curpt1.w, curpt2.x/curpt2.w, curpt2.y/curpt2.w);
+        //         }
+        //     }
             
-            // 3. and 4. 
-            for(j = 0; j < tempVertices.length; j++) {
-                tempVertices[j] = Matrix.multiply( transcale, Mper, tempVertices[j]);
-            }
-            // 5. 
-            for (j = 0; j < scene.models[i].edges.length; j++) {
-                var curEdge = scene.models[i].edges[j];
-                for (k = 0; k < curEdge.length-1; k++) {
-                    var curpt1 = tempVertices[curEdge[k]];
-                    var curpt2 = tempVertices[curEdge[k+1]];
-                    DrawLine(curpt1.x/curpt1.w, curpt1.y/curpt1.w, curpt2.x/curpt2.w, curpt2.y/curpt2.w);
-                }
-            }
+        // 1. transform vertices in canonicalVV 
+        // 2. Clip against CVV
+        // 3. Project onto 2D (Mper matrix)
+        // 4. transcale to framebuffer size 
+        // 5. Draw all edges
+        // step 1
+        var tempVertices;
+        tempVertices = [];
+        for(j = 0; j < scene.models[i].vertices.length; j++) {
+            tempVertices.push(Matrix.multiply( parallel, scene.models[i].vertices[j]));
         }
-    } else {
-        for(i = 0; i< scene.models.length; i++) { // PERSPECTIVE PROJECTION
-            // 1. transform vertices in canonicalVV 
-            // 2. Clip against CVV
-            // 3. Project onto 2D (Mper matrix)
-            // 4. transcale to framebuffer size 
-            // 5. Draw all edges
-            // step 1
-            var tempVertices;
-            tempVertices = [];
-            for(j = 0; j < scene.models[i].vertices.length; j++) {
-                tempVertices.push(Matrix.multiply( perspective, scene.models[i].vertices[j]));
-            }
-            // 2.
-            for(j = 0; j < scene.models[i].edges.length; j++) {
-
-                var curEdge = scene.models[i].edges[j];
-                for(k = 0; k < curEdge.length-1; k++){
-                    var start = curEdge[k];
-                    var end = curEdge[k+1];
-                    var temp1 = tempVertices[start];
-                    var temp2 = tempVertices[end];
-                    //console.log(temp1.data[0][0])
-                    var curpt1 = {
-                        x:  temp1.data[0][0],
-                        y:  temp1.data[1][0],
-                        z:  temp1.data[2][0]
-                    }
-                    var curpt2 = {
-                        x:  temp2.data[0][0],
-                        y:  temp2.data[1][0],
-                        z:  temp2.data[2][0]
-                    }
-                    var result = ClipLine(curpt1, curpt2, pers_bounds);
-                    
-                    tempVertices[start].data[0][0] = result.pt0.x;
-                    tempVertices[start].data[1][0] = result.pt0.y;
-                    // tempVertices[curEdge[k]].z = result.pt0.z;
-                    tempVertices[end].data[0][0] = result.pt1.x;
-                    tempVertices[end].data[1][0] = result.pt1.y;
-                    // tempVertices[curEdge[k+1]].z = result.pt1.z;
-                }
-            }
-            // 3. and 4. 
-            for(j = 0; j < tempVertices.length; j++) {
-                tempVertices[j] = Matrix.multiply( transcale, Mper, tempVertices[j] );
-            }
-            // 5. 
-            for (j = 0; j < scene.models[i].edges.length; j++) {
-                var curEdge = scene.models[i].edges[j];
-                for (k = 0; k < curEdge.length-1; k++) {
-                    var curpt1 = tempVertices[curEdge[k]];
-                    var curpt2 = tempVertices[curEdge[k+1]];
-                    DrawLine(curpt1.x/curpt1.w, curpt1.y/curpt1.w, curpt2.x/curpt2.w, curpt2.y/curpt2.w);
-                }
+        // 2.
+        
+        // 3. and 4. 
+        for(j = 0; j < tempVertices.length; j++) {
+            tempVertices[j] = Matrix.multiply( transcale, Mper, tempVertices[j] );
+        }
+        // 5. 
+        for (j = 0; j < scene.models[i].edges.length; j++) {
+            var curEdge = scene.models[i].edges[j];
+            for (k = 0; k < curEdge.length-1; k++) {
+                var curpt1 = tempVertices[curEdge[k]];
+                var curpt2 = tempVertices[curEdge[k+1]];
+                DrawLine(curpt1.x/curpt1.w, curpt1.y/curpt1.w, curpt2.x/curpt2.w, curpt2.y/curpt2.w);
             }
         }
     }
